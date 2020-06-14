@@ -13,11 +13,9 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('index');
-});
+// 
 
-Route::get('/about', function () {
-    $nama = 'malik';
-    return view('about', ['nama' => $nama]);
-});
+Route::get('/', 'PageControl@home');
+Route::get('/about', 'PageControl@about');
+
+Route::get('/mahasiswa', 'MahasiswaControler@index');
