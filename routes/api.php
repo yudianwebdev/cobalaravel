@@ -17,3 +17,22 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+
+Route::post('/signin', [LoginController::class,'store']);
+Route::post('/login', [LoginController::class,'autenticete']);
+Route::group(['prefix' => 'v1'
+],function () {
+Route::group([
+    'prefix' => 'auth'
+], function () {
+    // Route::post('login', [LoginController::class,'autenticete']);
+    Route::post('/signup', [LoginController::class,'store']);
+  
+    Route::group([
+      'middleware' => 'auth:api'
+    ], function() {
+        Route::get('logout', 'AuthController@logout');
+        Route::get('user', 'LoginController@user');
+    });
+});});
