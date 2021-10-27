@@ -5,6 +5,11 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Studen;
+use Carbon\Carbon;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
+use Symfony\Component\HttpFoundation\Response;
 
 class MahasiswaControler extends Controller
 {
@@ -13,12 +18,48 @@ class MahasiswaControler extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function apasih(Request $request)
     {
         // $users = DB::table('studens')->get();
-        $users = Studen::all();
-
-        return view('mahasiswa.index', ['mahasiswa' => $users]);
+       $vallidator = Validator::make($request->all(), [
+            'email' => ['required','email:dns',], 
+            'password' => ['required',"min:6"], 
+        ]);
+        if ($vallidator->fails()) {
+            $res =[
+                'code'=>422,
+                'massage'=>"error validation",
+                'data'=>$vallidator->errors(),
+            ];
+            return response()->json($res, Response::HTTP_UNPROCESSABLE_ENTITY);
+            # code...
+        }
+        try {
+            //code...
+            $credentials = request(['email', 'password']);
+        if(!Auth::attempt($credentials))
+        
+            return response()->json([           'code'=>Response::HTTP_UNAUTHORIZED,
+                'message' => 'Unauthorized'
+            ], Response::HTTP_UNAUTHORIZED);
+        $user = $request->user();
+        $tokenResult = $user->createToken('Personal Access Token');
+        $token = $tokenResult->token;
+        if ($request->remember_me)
+            $token->expires_at = Carbon::now()->addWeeks(1);
+        $token->save();
+        $res =[
+            'code'=>Response::HTTP_OK,            
+            'token' => $tokenResult->accessToken,
+            'token_type' => 'Bearer'
+        ];
+        return response()->json($res, Response::HTTP_OK);
+        } catch (QueryException $e) {
+            return response()->json([
+                'massege' => "Failed" . $e->errorInfo
+            ]);
+        }
+     
     }
 
     /**
